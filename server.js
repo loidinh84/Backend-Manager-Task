@@ -2,7 +2,7 @@ const express = require("express");
 const admin = require("firebase-admin");
 
 //1 kết nối với file key
-const serviceAccount = require("../serviceAccountKey.json");
+const serviceAccount = require("./serviceAccountKey.json");
 
 admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
@@ -13,14 +13,21 @@ const db = admin.firestore();
 const app = express();
 app.use(express.json());
 
+//hàm Middleware để kiểm tra bảo mật
+const checkAuth = async (req, res, next) => {
+  req.user = { uid: "haahMhqCgqNKBemKGIwlmQ9QfF12" }; 
+  next();
+};
+
 //2 API để lưu thong tin dự án mới vào database
-app.post("/add-project", async (req, res) => {
+app.post("/add-project", checkAuth, async (req, res) => {
   try {
     const project = {
       name: req.body.name,
       tech: req.body.tech,
       description: req.body.description,
       createdAt: new Date(),
+      userId: req.user.uid,
     };
     const response = await db.collection("projects").add(project);
     res
